@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>External API UI Extension Sample</title>
+    <!--<link href="https://assets.contentstack.io/v3/assets/bltd1343376dfba54d2/blt5be5ea209445020c/5b489ccb277066700b7c4813/egnyte.css"-->
+    <!--    rel="stylesheet" type="text/css" media="all">-->
+
+    <script src="https://dev-assets.contentstack.io/v3/assets/blt438e02fa0cdfab26/blt18462c3211319d79/5b36269678b22b820491687b/bundle.js"></script>
+
+    <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/bltc8e1a7c2b251bb36/5b210d634b75c4de05141d6e/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/blt77885df3a8e892fc/5b210d82a00a67ed26443656/script.js"></script>
+    <style>
+    html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font-weight: 500;
+    font-family: 'Whitney SSm A', 'Whitney SSm B', Arial;
+    vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+body {
+    line-height: 1;
+}
+ol, ul {
+    list-style: none;
+}
+blockquote, q {
+    quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.clearfix {
+    clear: both;
+}
+
+/* start from here */
+.wrapper  { 
+    margin: 0; 
+    padding:0; 
+    width:100%; 
+}
+
+.wrapper .container { 
+    width: 1200px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+.breadcrum{
+    padding: 10px 0;
+    border-bottom: 1px solid #4f6471;
+    margin-bottom: 10px;
+}
+.breadcrum li{
+    padding-right: 5px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    color:#4f6471; 
+}
+
+ .folder, .file{
+    width:auto;
+    float: left;
+    padding-right: 20px;
+}
+.parentfolder{display: none;}
+.folder h6 , .file h6{
+    font-size: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+    color:#4f6471; 
+    display: block;
+    float: left;
+    margin-left:10px;
+}
+
+.foldericon , .fileicon {
+    min-height: 35px;
+    background: #efdf7a;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: block;
+    float: left;
+    min-width: 35px;
+}
+
+    .msg{display:none;padding:20px}
+    </style>
+</head>
+
+
+<body>
+    <!--<div class="wrapper">-->
+    <!--    <div class="container">-->
+    <!--        <div class="discription_box">-->
+    <!--            <ul>-->
+    <!--                <li>-->
+                        <!--<span>No File Selected</span>-->
+    <!--                </li>-->
+    <!--            </ul>-->
+    <!--            <a href='#' class="choose_video">Choose File</a>-->
+    <!--        </div>-->
+    <!--        <div class="list_folder">-->
+    <!--            <ul id="folders">-->
+
+    <!--            </ul>-->
+    <!--        </div>-->
+
+            <!-- list section start  here -->
+    <!--        <div class="list_section">-->
+    <!--            <form action="">-->
+    <!--                <input type="search" class="searchInpput" placeholder="Search ..." />-->
+    <!--            </form>-->
+    <!--            <div class="loader">-->
+    <!--                    <img id="loader-img" alt="loader" src="https://clinicalpulse.com/img/loading.gif" width="100" height="100" align="center"-->
+    <!--                    />-->
+    <!--                </div>-->
+    <!--            <ul id="products">-->
+    <!--            </ul>-->
+    <!--            <div class="msg">No Videos Found</div>-->
+    <!--        </div>-->
+            <!-- list section start  here -->
+    <!--    </div>-->
+    <!--</div>-->
+    <div class="wrapper">  
+   <div class="container">
+       
+       <div class="discription_box">
+                <ul>
+                    <li>
+                       
+                    </li>
+                </ul>
+                <a href='#' class="choose_video">Choose File</a>
+        </div>
+        
+       <ul class="breadcrum">
+            <li>
+                <!--<span>step</span>-->
+                <!--<span> > </span>-->
+            </li>
+        </ul>  
+        
+        <form action="">
+            <input type="search" class="searchInpput" placeholder="Search ..." />
+        </form>
+    
+    
+        <div class="loader">
+            <img id="loader-img" alt="loader" src="https://clinicalpulse.com/img/loading.gif" width="100" height="100" align="center"/>
+        </div>
+        
+       <div class="parentfolder">
+           
+           
+        </div>
+        
+       </div> 
+     </div>   
+
+    <script type="text/javascript">
+        let extensionField;
+        let loader;
+        let parent;
+        
+        let msg;
+        $(document).ready(function () {
+            msg = $('.msg')
+            loader = $('.loader')
+            parent =$('.parentfolder')
+            // Step:1 Intializing extension - In this step we try to connect to host window using postMessage API and get intial data.
+            ContentstackUIExtension.init().then(function (extension) {
+                extensionField = extension;
+
+                console.log(extensionField.config, "apconfig")
+                let request = new Request(extension.config);
+                let initialList; // store initial data to save extra rest call when search field is empty
+                
+                
+                request.getEgnyteData().then((response) => {
+
+                    initialList = response;
+                    console.log(response, "initialList")
+                    $('.breadcrum li').append('<span id="">'+ initialList.name +'</span><span> > </span>')
+                    // Step 2:  Render - Render the data fetched from external service
+                    listFolders(response.folders)
+                    listVideos(response.files);
+                });
+                
+                
+          
+           });
+        })
+
+        
+        
+        
+        function listFolders(videos) { //function for creating DOM for folders retreived from Egnyte
+            console.log(videos, "+++++++++++++++");
+            videos.forEach(function (video, index) {
+                parent.append('<div class="folder"><div class="foldericon" id="'+video.name+'"></div><h6>'+ video.name +'</h6></div>')
+            });
+            
+           
+            
+
+
+        }
+         //function for creating DOM for files retreived from Egnyte
+        function listVideos(videos) {
+            console.log(videos, "in listvideos")
+            
+            videos.forEach(function (video, index) {
+                    parent.append('<div class="file" id="' + video.group_id + '"><div class="fileicon"></div>'+
+              '<h6>' + video.name + ' </h6></div>')
+            });
+           
+            var initialValue = (extensionField && extensionField.field && extensionField.field.getData()) ? extensionField.field.getData() : null;
+            console.log(initialValue, "saved data")
+            if (initialValue) {
+               
+               
+                var url = "https://apidemo.egnyte.com/pubapi/v1/fs/ids/file/"+ initialValue +"?list_content=true&allowed_link_types=false&count=0&offset=0&sort_by=last_modified&sort_direction=descending"
+                var headers = {
+                       "Authorization": 'Bearer ' + extensionField.config.access_token
+                }
+                getData({ url: url, headers: headers, method: 'GET' }).then(function (data) {
+                    console.log(data.name, "received from initialValue")
+                    var box = data.name
+                    $('.discription_box ul').html(box);
+                    $('.discription_box ul li a').click(function (e) {
+                        e.preventDefault();
+                    });
+                    extensionField.window.enableAutoResizing();
+                }, function (error) {
+                    console.error("Failed!", error);
+                })
+
+            }
+
+
+            
+
+            extensionField.setReady();
+            domEvents();
+        }
+
+        //eventlistner function
+        function domEvents() {
+           
+            extensionField.window.enableAutoResizing();
+            
+            
+            $('.file').click(function () {
+                var box = $(this)[0].outerHTML;
+                extensionField.field.setData($(this).attr('id')).then(function () {
+                    //console.log(id,"set id")
+                    $('.discription_box ul').html(box);
+                    $('.parentfolder').hide();
+                }).catch(function (error) {
+                    console.log('error in setting data', error)
+                })
+            });
+            
+            // on click function choose file button
+            $('.choose_video').click(function (e) {
+                parent.show();
+            });
+             //click event function for click on folder
+            $('.folder div').click(function (e) {
+                let request = new Request();
+                var id = $(this).attr('id');
+                console.log(id,"id")
+                parent.empty()
+                request.egnyteFile(id);
+                $('.breadcrum li').append('<span id="'+ id +'">'+ id +'</span><span> > </span>')
+            })
+            
+            $('.breadcrum li span').click(function (){
+                let request = new Request();
+                var id = $(this).attr('id');
+                console.log(id,"id")
+                parent.empty()
+                request.egnyteFile(id);
+            })
+           
+
+        }
+
+        // function for sending XHR request and getting data
+        function getData(data) {
+            console.log(data, "in data")
+            return new Promise(function (resolve, reject) {
+                var req = new XMLHttpRequest();
+                req.open(data.method, data.url);
+                loader.show();
+
+                for (var key in data.headers) {
+                    if (data.headers.hasOwnProperty(key)) {
+                        req.setRequestHeader(key, data.headers[key]);
+                    }
+                }
+
+                req.onload = function (e) {
+                    if (req.status == 200) {
+                        loader.hide();
+                        var data = JSON.parse(req.response);
+                        resolve(data);
+                    }
+                    else {
+                        reject(Error(req.statusText));
+                    }
+
+                };
+
+                req.onerror = function () {
+                    reject(Error("Network Error"));
+                };
+
+                if (data.data) {
+                    req.send(data.data);
+                } else {
+                    req.send();
+                }
+
+            });
+        }
+        
+        //class request
+        class Request {
+
+            //function for getting data from root folder of egnyte
+            getEgnyteData() {
+
+                var url = "https://apidemo.egnyte.com/pubapi/v1/fs/Shared/ap-test?access_token=" + extensionField.config.access_token;
+
+                return new Promise((resolve, reject) => {
+                    getData({ url: url, method: 'GET' }).then(function (data) {
+                        console.log("data egnyte", data);
+                        resolve(data)
+                    }, function (error) {
+                        console.error("Failed!", error);
+                    });
+                });
+
+            }
+            
+            //function for getting data perticular folder
+            egnyteFile(filename) {
+                console.log(filename,"fname")
+                var url = "https://apidemo.egnyte.com/pubapi/v1/fs/Shared/ap-test/" + filename + "?access_token=" + extensionField.config.access_token;
+
+                return new Promise((resolve, reject) => {
+                    getData({ url: url, method: 'GET' }).then(function (data) {
+                        console.log("file data egnyte", data.files);
+                        resolve(listVideos(data.files));
+                    }, function (error) {
+                        console.error("Failed!", error);
+                    });
+                })
+            }
+            
+        }
+    </script>
+</body>
+
+</html>

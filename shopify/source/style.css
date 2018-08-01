@@ -1,0 +1,271 @@
+    /*
+	Theme Name: Brennuis
+	Theme URI: http://themes.ydimitrov.eu/brennuis/
+	Description: responsive magazine/blog theme
+	Version: 1.4
+	Author: Lion
+	Author URI: http://themeforest.net/user/Lion
+
+	-- CONTENTS --
+
+	=CSS RESET
+	=General
+	=Typography
+	=Navigation
+	=Sidebar
+	=Footer
+	=Modules
+	=Blog
+	=Comments
+	=Archives
+	=Contact
+	=Shortcodes
+	=Widgets
+*/
+
+/* CSS RESET - http://meyerweb.com/eric/tools/css/reset/
+-------------------------------------------------------------- */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font-weight: 500;
+    font-family: 'Whitney SSm A', 'Whitney SSm B', Arial;
+    vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+body {
+    line-height: 1;
+}
+ol, ul {
+    list-style: none;
+}
+blockquote, q {
+    quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/****/
+
+
+.wrapper  { 
+    margin: 0; 
+    padding:0; 
+    width:100%; 
+}
+
+.wrapper .container{
+    width: 1200px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.wrapper .container .discription_box{
+    width: 100%;
+    float: left;
+}
+
+.discription_box ul {
+    width: 100%;
+    float: left;
+    display: block;
+    padding-bottom: 25px;
+}
+
+.discription_box ul li { 
+    width: 30.33%;
+    float: left;
+    display: block;
+    margin-right: 3%;
+    border:1px solid #ccc;
+}
+
+.discription_box ul li img{ 
+    width: 100%;
+    height: auto;
+    position: relative;
+}
+.discription_box ul li span.title{ 
+    font-size: 16px; 
+    line-height: 20px; 
+    padding:10px 10px 5px; 
+    display: block; 
+    
+}      
+.discription_box ul li p { 
+    font-size: 12px;
+    line-height: 14px; 
+    padding:0 10px 20px; 
+    margin-bottom: 0;
+      
+} 
+
+.discription_box ul li a { 
+    position: relative;
+    display: block;
+}
+
+.discription_box .choose_video {
+    cursor: pointer;
+}
+
+.wrapper .container .list_section { 
+    width: 100%; 
+    display: none;
+    float: left;
+}
+.wrapper .container .list_section form{ 
+    padding-top: 20px;
+}
+
+/*.wrapper .container .list_section .searchInpput { 
+    width: 100%; 
+    outline: none;
+    display: block; 
+    padding: 3px;
+    border: 0; 
+    font-size: 19px;
+    line-height: 40px; 
+    margin-top: 35px;
+}
+.wrapper .container .list_section .searchInpput::-webkit-input-placeholder { 
+    color:#666;
+}*/
+
+.list_section ul  { 
+    width: 100%;
+    float: left;
+    display: block;
+    padding-top: 35px;
+    padding-bottom: 25px;
+}
+.list_section ul li { 
+    width: 28.33%;
+    float: left;
+    display: block;
+    margin-right: 4.2%;
+    border:1px solid transparent;
+    margin-bottom: 19px;
+    cursor: pointer;
+}
+.list_section ul li:nth-child(3n+3){
+  margin-right: 0;
+}
+
+
+.list_section ul li a { 
+    position: relative;
+    display: block;
+}
+
+
+.list_section ul li img{ 
+    width: 100%;
+    height: auto;
+    position: relative;
+}
+.list_section ul li span.title{ 
+    font-size: 16px; 
+    line-height: 20px; 
+    padding:10px 10px 5px; 
+    display: block; 
+    
+}      
+.list_section ul li p { 
+    font-size: 12px;
+    line-height: 14px; 
+    padding:0 10px 20px; 
+    margin-bottom: 0;
+      
+}  
+.list_section ul li.selected{
+   position: relative;
+   border: 1px solid #4895e6;      
+}
+.list_section ul li.selected:after{
+    width: 8px;
+    position: absolute;
+    content: '';
+    right: 15px;
+    top: 7px;
+    height: 8px;
+    border-radius: 50%;
+    border: 7px solid #4895e6;
+    background: #fff;
+}
+
+
+@media (max-width:1200px){
+
+    .wrapper .container { 
+       width: 100%;
+    }
+    
+    .list_section ul li{
+      margin-right: 4%;
+    }
+  
+}
+
+
+@media (max-width:768px){
+    
+    .discription_box ul li {
+    }
+    
+    .list_section ul li {
+    }
+
+
+   .list_section ul li:nth-child(3n+3){
+       margin-right: 4%;
+    }
+
+}
+
+@media (max-width:640px){
+    
+    .list_section ul{
+      float: none;
+    }
+    
+    .list_section ul li {
+    float: none;
+    display: block;
+    margin: 0 auto 20px;    
+    }
+    
+    .list_section ul li:nth-child(3n+3){
+        margin: 0 auto 20px; 
+    }
+    
+}
+
+
+

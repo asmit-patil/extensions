@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>External API UI Extension Sample</title>
+    <link href="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/blt0c862087a035ae40/5b4d7c71c321297a0b1bcde6/ui-extension-sdk.css"
+        rel="stylesheet" type="text/css" media="all">
+    <link href="https://assets.contentstack.io/v3/assets/bltd1343376dfba54d2/bltd43dcd1da76d6e83/5b618032007926143d17cc7e/youtube-style.css"
+        rel="stylesheet" type="text/css" media="all">
+
+    <script src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/blteba83ade0c34b7c9/5b4d7c2728492c8e0bd43fef/bundle.js"></script>
+
+    <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/bltc8e1a7c2b251bb36/5b210d634b75c4de05141d6e/jquery-1.11.1.js"></script>
+    <!--<script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/blt77885df3a8e892fc/5b210d82a00a67ed26443656/script.js"></script>-->
+    <style>
+        /*body {overflow: hidden}*/
+
+        .discription_box ul li span.title {
+            font-size: 16px;
+            line-height: 20px;
+            padding: 10px 10px 5px;
+            display: block;
+            color: #748590;
+            height: 150px;
+        }
+    </style>
+</head>
+
+
+
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="discription_box">
+                <ul>
+                    <li>
+
+
+                    </li>
+                </ul>
+                <div class="choose_video">Choose Video</div>
+                <div class="loader reference-loading">
+                    <div class="loading-flash">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- list section start  here -->
+            <div class="list_section">
+
+                <form action="">
+                    <input type="search" class="cs-text-box w-100 searchInpput" placeholder="Search..." />
+
+                </form>
+
+                <div class="msg">No Videos Found</div>
+                <ul id="products">
+                </ul>
+
+                <div class="load-more">
+                    <div>
+                        <span></span>Load More</div>
+                </div>
+            </div>
+            <!-- list section ends  here -->
+        </div>
+    </div>
+
+    <script>
+        let extensionField;
+        let loader;
+        let unorderedList;
+        let msg, pageToken
+        let request = {};
+        let initialList;
+        $(document).ready(function () {
+            msg = $('.msg')
+            loader = $('.reference-loading')
+            unorderedList = $('.list_section ul');
+
+
+            //Intializing extension - In this step we try to connect to host window using postMessage API and get intial data.
+            ContentstackUIExtension.init().then(function (extension) {
+                extensionField = extension;
+                request = new Request(extension.config);
+                // store initial data to save extra rest call when search field is empty
+
+                request.getYoutubeVideos().then((response) => {
+
+                    initialList = response.items;
+
+                    //  Render - Render the data fetched from external service
+                    render(response.items)
+                    loadMore(response);
+
+
+                });
+
+                $(".searchInpput").on("keypress", function (event) { // prevent form submit
+                    let value = $(this).val().toLowerCase();
+                    if (event.keyCode == 13) {
+                        unorderedList.empty();
+                        $('.load-more').hide()
+                        console.log("enter")
+                        event.preventDefault();
+                        if (!value) {
+                            return render(initialList, true);
+                        }
+                        request.search(value).then((response) => {
+                            if (response.length === 0) {
+                                loader.hide();
+                                msg.show();
+                                return
+                            }
+                            render(response.items, true);
+                            loadMoreResults(value, response);
+                        });
+                    }
+                });
+
+                $(".searchInpput").on("keyup", function (event) { // reset if search input is empty
+
+                    let value = $(this).val().toLowerCase();
+                    if (!value) {
+                        msg.hide()
+                        unorderedList.empty();
+                        request.getYoutubeVideos().then((response) => {
+
+
+
+                            //  Render - Render the data fetched from external service
+                            render(response.items)
+                            loadMore(response);
+
+
+                        });
+                        //return render(initialList, true);
+                    }
+                    // $(".list_section ul li").filter(function () {
+                    //     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                    // });
+                });
+
+                $(document).on('click', '.file-action', function () {
+                    console.log("clicked")
+                    $(this).parent().parent().remove()
+                    $('.discription_box ul').hide()
+                    //$('.discription_box ul li').html('<span>No Video Selected</span>')
+                    extensionField.field.setData(null)
+                })
+
+                extensionField.window.enableAutoResizing();
+            })
+
+        });
+
+        function loadMore(response) {
+            if (response.hasOwnProperty('nextPageToken')) {
+                console.log("object has nextPageToken")
+                $('.load-more').show()
+                pageToken = response.nextPageToken
+                $('.load-more').unbind('click').bind('click', function () {
+
+                    $(this).addClass("load-spinner")
+                    request.getYoutubeVideos(pageToken).then((result) => {
+                        console.log(pageToken, "token")
+                        render(result.items)
+                        if (!result.hasOwnProperty('nextPageToken')) {
+                            $('.load-more').hide()
+                        }
+                        pageToken = result.nextPageToken
+                    })
+
+                })
+            }
+
+        }
+
+        function loadMoreResults(value, response) {
+            if (response.hasOwnProperty('nextPageToken')) {
+                console.log("object has nextPageToken")
+                $('.load-more').show()
+                pageToken = response.nextPageToken
+                $('.load-more').unbind('click').bind('click', function () {
+
+                    $(this).addClass("load-spinner")
+                    request.search(value, pageToken).then((result) => {
+                        console.log(pageToken, "search page token")
+                        render(result.items)
+                        if (!result.hasOwnProperty('nextPageToken')) {
+                            $('.load-more').hide()
+                        }
+                        pageToken = result.nextPageToken
+                    })
+
+                })
+            }
+
+        }
+
+        // render function for creating DOM structure
+        function render(videos, initialRender) {
+            console.log(videos)
+            //unorderedList.empty();
+            msg.hide();
+
+            videos.forEach(function (video, index) {
+
+                unorderedList.append('<li id="' + video.id + '">' +
+                    '<section class="img-wrapper">' + '<img src="' + video.snippet.thumbnails.high.url + '" alt="image-6">' + '</section>' +
+                    ' <span class="title">' + video.snippet.title + '</span>' +
+                    '</li>');
+
+            });
+
+            //if(initialRender) return false;
+
+            var initialValue = (extensionField && extensionField.field && extensionField.field.getData()) ? extensionField.field.getData() : null;
+            console.log(initialValue, "initialValue")
+            if (initialValue) {
+                let currentElement = document.getElementById(initialValue);
+                console.log(currentElement, "currentElement")
+                //console.log($(currentElement).find('.img-wrapper').append('<div class="file-action">x</div>'), "result of initialValue")
+                $(currentElement).find('.img-wrapper').append('<div class="file-action">x</div>')
+                let box = $(currentElement)[0].outerHTML;
+                $('.discription_box ul').html(box);
+                $('.discription_box').show()
+                $('.discription_box ul li a').click(function (e) {
+                    e.preventDefault();
+                });
+                setTimeout(function () {
+                    if (!initialRender) {
+                        extensionField.window.updateHeight(300);
+                    }
+                }, 1000);
+            }
+            else {
+                $('.discription_box').show()
+            }
+
+
+            // on click function choose video button
+            $('.choose_video').click(function (e) {
+                console.log($('.list_section ul li').find('.file-action'))
+                $('.list_section ul li').find('.file-action').remove()
+                console.log("test", initialList)
+                $('.list_section').show();
+            });
+            domChangeListner();
+        }
+        //eventlistner function
+        function domChangeListner() {
+
+            let anchor = $('.list_section ul li');
+
+            $('.list_section ul li section').click(function (e) {
+                e.preventDefault();
+                $('.list_section ul li').removeClass('selected');
+                $(this).parent().addClass('selected');
+            });
+
+            anchor.click(function () {
+
+                let src = $(this).find('img').attr('src')
+                let id = $(this).attr('id')
+                let title = $(this).find('.title').html()
+                let desc = $(this).find('p').html()
+                console.log(id, "selected item id")
+                extensionField.field.setData($(this).attr('id')).then(function () {
+                    $('.discription_box ul').html('<li id="' + id + '">' +
+                        '<section class="img-wrapper">' + '<img src="' + src + '" alt="image-6">' + '<div class="file-action">x</div></section>' +
+                        ' <span class="title">' + title + '</span>' +
+                        '</li>');
+                    $('.discription_box ul').show()
+                    $('.list_section').hide();
+                }).catch(function (error) {
+                    console.log('error in setting data', error)
+                })
+            });
+
+
+
+
+        }
+
+
+        // function for sending XHR request and getting data
+        function getData(data) {
+            return new Promise(function (resolve, reject) {
+                var req = new XMLHttpRequest();
+                req.open(data.method, data.url);
+                loader.show();
+
+                for (var key in data.headers) {
+                    if (data.headers.hasOwnProperty(key)) {
+                        req.setRequestHeader(key, data.headers[key]);
+                    }
+                }
+
+                req.onload = function (e) {
+                    if (req.status == 200) {
+                        loader.hide();
+                        $('.load-more').removeClass("load-spinner")
+                        var data = JSON.parse(req.response);
+                        resolve(data);
+                    }
+                    else {
+                        reject(Error(req.statusText));
+                    }
+                };
+
+                req.onerror = function () {
+                    reject(Error("Network Error"));
+                };
+
+                if (data.data) {
+                    req.send(data.data);
+                } else {
+                    req.send();
+                }
+
+            });
+        }
+
+        // class request 
+        class Request {
+
+            //function for searching videos 
+            search(keyword, pagetoken) {
+                if (pagetoken) {
+                    var url = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=" + keyword + "&maxResults=12&pageToken=" + pagetoken + "&regionCode=in&key=" + extensionField.config.key
+                }
+                else {
+                    var url = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=" + keyword + "&maxResults=12&regionCode=in&key=" + extensionField.config.key
+                }
+
+                return new Promise((resolve, reject) => {
+                    getData({ url: url, method: 'GET' })
+                        .then(function (data) {
+                            console.log(data, "search res")
+                            resolve(data);
+
+                        }).catch(function (error) {
+                            loader.hide();
+                            msg.show();
+                        })
+                })
+                    .catch((err) => {
+                        reject(err);
+                    });
+
+            }
+
+            //function for retrieving videos from youtube 
+            getYoutubeVideos(pagetoken) {
+                if (pagetoken) {
+                    var url = "https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails&chart=mostPopular&maxResults=12&pageToken=" + pagetoken + "&regionCode=in&key=" + extensionField.config.key
+
+                }
+                else {
+                    var url = "https://www.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails&chart=mostPopular&maxResults=12&regionCode=in&key=" + extensionField.config.key
+                }
+
+
+                return new Promise((resolve, reject) => {
+                    getData({ url: url, method: 'GET' })
+                        .then(function (data) {
+                            console.log("youtube data", data);
+                            resolve(data);
+                        })
+                        .catch(function (err) {
+                            throw err
+                        })
+
+                })
+            }
+        }
+    </script>
+</body>
+
+</html>

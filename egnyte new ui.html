@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>External API UI Extension Sample</title>
+    <link href="https://assets.contentstack.io/v3/assets/bltd1343376dfba54d2/blt06201ca2d891b74d/5b586c2bfdafcf3620faded4/egnyte(4).css"
+        rel="stylesheet" type="text/css" media="all">
+    <link href="https://assets.contentstack.io/v3/assets/bltd1343376dfba54d2/blt841080d4d12e65eb/5b5024c346591e820b82b9f0/font-awesome.min.css"
+        rel="stylesheet" type="text/css" media="all">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,600,600i" rel="stylesheet">
+    <script src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/blteba83ade0c34b7c9/5b4d7c2728492c8e0bd43fef/bundle.js"></script>
+    <script type="text/javascript" src="https://momentjs.com/downloads/moment.min.js"></script>
+    <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/bltc8e1a7c2b251bb36/5b210d634b75c4de05141d6e/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/blt77885df3a8e892fc/5b210d82a00a67ed26443656/script.js"></script>
+    <style>
+    .file-action{
+        cursor: pointer;
+    }
+    </style>
+</head>
+
+
+<body>
+    <div class="wrapper">
+        <div class="container">
+
+            <div class="discription_box">
+
+                <div class="file-upload">
+                    <ul>
+
+                    </ul>
+                </div>
+                <div id="choose_video">Choose File</div>
+
+            </div>
+
+
+            <ul class="breadcrum">
+
+            </ul>
+
+            <div class="form">
+                <div class="search-input-component">
+
+                    <input type="text" class="search-input" placeholder="Search for files…" value="">
+                </div>
+                <div class="insertbutton">
+                    <button disabled="disabled" class="insertbtn">Insert</button>
+                </div>
+            </div>
+
+
+            <div class="loader reference-loading">
+                <div class="loading-flash">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </div>
+
+            <div class="folder-wrapper">
+                <table>
+                    <thead class="folderheader">
+                        <tr>
+                            <th class="checkbox-column">
+
+                            </th>
+                            <th class="itemname-column"></th>
+                            <th class="date-column">Date modified</th>
+                            <th class="updateby-column">Updated by</th>
+                            <th class="size-column">Size</th>
+                        </tr>
+                    </thead>
+                    <tbody class="subfolder-wrapper">
+
+                    </tbody>
+                </table>
+                <div class="msg">No Match Found</div>
+
+                <div class="load-more">
+                    <div>
+                        <span></span>Load More</div>
+                </div>
+            </div>
+
+
+
+
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        let extensionField, loader, parent, initialList, msg, totalCount, request;
+        let offset = 0;
+        var ids = [], initialValueResponse = [];
+        var selectedFiles = {}
+        let folderName = "/Shared/ap-test";
+        $(document).ready(function () {
+            msg = $('.msg')
+            loader = $('.loader')
+            parent = $('.folder-wrapper')
+            sub = $('.subfolder-wrapper')
+            //  Intializing extension - In this step we try to connect to host window using postMessage API and get intial data.
+            ContentstackUIExtension.init().then(function (extension) {
+                extensionField = extension;
+
+                console.log(extensionField.config, "apconfig")
+                request = new Request(extension.config);
+                
+                //loading data from egnyte 
+                request.loadData(folderName, offset).then((response) => {
+                    initialList = response;
+                    console.log(response, "initialList")
+                    $('.breadcrum').append('<li  id="/Shared/' + initialList.name + '"><span>' + initialList.name + '</span></li>')
+                    $('.itemname-column').append(initialList.name)
+                    loadMore(response, folderName)
+
+                })
+
+                //keypress event listener on search input 
+                $(".search-input").on("keypress", function (event) { 
+                    folderName = $(".breadcrum li:last-child").attr('id')
+                    let value = $(this).val().toLowerCase();
+                    if (event.keyCode == 13) {
+                        parent.hide()
+                        msg.hide()
+                        console.log("enter")
+                        event.preventDefault();
+                        if (!value) {
+                            return createDOM(initialList)
+                        }
+                        request.search(value, folderName).then((response) => {
+                            console.log(response.results, "search response")
+                            sub.empty();
+                            if (response.results.length === 0) {
+                                console.log("empty response")
+                                loader.hide();
+                                msg.show();
+                                parent.show()
+                                $('.load-more').hide();
+                                return
+                            }
+
+                            listFiles(response.results)
+                            parent.show()
+                        });
+                    }
+                });
+                
+                //keyup event listener on search input 
+                $(".search-input").on("keyup", function (event) { // reset if search input is empty
+                    let value = $(this).val().toLowerCase();
+                    folderName = $(".breadcrum li:last-child").attr('id')
+                    if (!value) {
+                        console.log("empty")
+                        msg.hide()
+                        sub.empty();
+                        $('.load-more').hide();
+                        parent.hide();
+                        offset = 0
+                        request.loadData(folderName, offset).then((response) => {
+                            loadMore(response, folderName)
+                            parent.show()
+
+                        })
+                        sub.show()
+                        return
+                    }
+                    $(".folder-wrapper table tbody").filter(function () {
+                        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+
+                    });
+
+
+                });
+
+
+
+                //storing initialValues in array called ids
+                ids = (extensionField && extensionField.field && extensionField.field.getData()) ? extensionField.field.getData() : null;
+                console.log(ids, "saved data")
+                if (ids.length > 0) {
+                    let counter = ids.length
+                    ids.forEach(function (key, index) {
+                        setTimeout(function () {
+                            var url = "https://apidemo.egnyte.com/pubapi/v1/fs/ids/file/" + key + "?list_content=true&allowed_link_types=false&count=0&offset=0&sort_by=last_modified&sort_direction=descending"
+
+                            var headers = {
+                                "Authorization": 'Bearer ' + extensionField.config.access_token
+                            }
+
+                            getData({ url: url, headers: headers, method: 'GET' }).then(function (data) {
+                                console.log(data, "received from initialValue")
+                                initialValueResponse.push(data.name)
+                                $('.file-upload ul').append(' <li id= "' + key + '"><span class="fileimage"><img src="https://images.contentstack.io/v3/assets/bltd1343376dfba54d2/blt58137f649fac466d/5b4d7ac1c66ad68c0bb1227b/document_attachment.png" alt="image"></span><div class="filename">'
+                                    + '<span class="name">' + data.name + '</span> <span class="size">' + formatFileSize(data.size) + '</span></div><div class="file-action"><span class="close">x</span></div></li>')
+
+
+                            }, function (error) {
+                                console.error("Failed!", error);
+                            })
+
+
+                            counter -= 1
+                            console.log(counter, "counter")
+                            if (counter === 0) {
+
+                                $('.discription_box').show()
+                                extensionField.window.enableAutoResizing();
+
+
+
+                            }
+                        }, 2000 * index)
+
+                    })
+                    console.log(initialValueResponse, "ressssssssssssssssssss")
+                }
+                else {
+                    $('.discription_box').show()
+                    $('.file-upload').hide()
+
+                }
+
+
+
+            });
+            
+            //function checking empty object
+            function isEmpty(obj) {
+                for (var key in obj) {
+                    if (obj.hasOwnProperty(key))
+                        return false;
+                }
+                return true;
+            }
+            
+            //function for removing element from array
+            Array.prototype.remove = function () {
+                var what, a = arguments, L = a.length, ax;
+                while (L && this.length) {
+                    what = a[--L];
+                    while ((ax = this.indexOf(what)) !== -1) {
+                        this.splice(ax, 1);
+                    }
+                }
+                return this;
+            };
+
+            //event listener on close button (to remove element from list)
+            $(document).on('click', '.close', function () {
+                let id = $(this).parent().parent().attr('id')
+                $(this).parent().parent().remove();
+
+                if (isEmpty(selectedFiles)) {
+
+                    //selectedFiles = Object.assign({}, initialValue);
+                    for (var i = 0; i < ids.length; i++) {
+                        selectedFiles[ids[i]] = initialValueResponse[i]
+                    }
+                    console.log(selectedFiles, "after empty condition")
+                }
+                ids.remove(id)
+                console.log(ids, "id")
+                delete selectedFiles[id]
+                console.log(selectedFiles, "+++++++++++++++++++++")
+
+
+                $('.file-upload ul').empty()
+                Object.keys(selectedFiles).forEach(function (key) {
+
+                    $('.file-upload ul').append(' <li id= "' + key + '" ><span class="fileimage"><img src="https://images.contentstack.io/v3/assets/bltd1343376dfba54d2/blt58137f649fac466d/5b4d7ac1c66ad68c0bb1227b/document_attachment.png" alt="image"></span><div class="filename">'
+                        + '<span class="name">' + selectedFiles[key] + '</span> <span class="size"></span></div><div class="file-action"><span class="close">x</span></div></li>')
+
+                })
+
+
+                extensionField.field.setData(ids).then(function () {
+                    if (ids.length == 0) {
+                        $('.file-upload').hide()
+                    }
+                    else {
+                        $('.file-upload').show()
+                    }
+                    parent.hide();
+                    $('.breadcrum').empty();
+                    $('.breadcrum').append('<li id="/Shared/' + initialList.name + '"><span>' + initialList.name + '</span></li>');
+                    $('.breadcrum').hide();
+                    $('.form').hide()
+
+
+                }).catch(function (error) {
+                    console.log('error in setting data', error)
+                })
+
+
+
+            })
+        })
+        
+        
+        //function for loading more data  
+        function loadMore(response, folderName) {
+            totalCount = response.total_count;
+            console.log(totalCount)
+
+            if (totalCount > 5) {
+                listFolders(response.folders);
+                listFiles(response.files);
+                $('.load-more').show();
+
+
+                $('.load-more').unbind('click').bind('click', function () {
+                    $(this).addClass("load-spinner")
+                    //$('.load-more').click(function (){
+                    offset = offset + 5;
+                    console.log(offset);
+                    console.log(folderName, "folder")
+                    request.loadData(folderName, offset).then((result) => {
+                        listFolders(result.folders);
+                        listFiles(result.files);
+                        if (offset > (totalCount - 5)) {
+                            $('.load-more').hide();
+                        }
+                    })
+
+                })
+            }
+            else {
+                $('.load-more').hide();
+                listFolders(response.folders);
+                listFiles(response.files);
+            }
+
+
+        }
+        
+        //function for converting file size 
+        function formatFileSize(bytes, decimalPoint) {
+            if (bytes == 0) return '0 Bytes';
+            var k = 1000,
+                dm = decimalPoint || 2,
+                sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+                i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+
+         //function for creating DOM for folders retreived from Egnyte
+        function listFolders(folders) {
+            //console.log(videos, "+++++++++++++++");
+            if (folders == undefined) {
+                console.log(" no folders");
+
+            }
+            else {
+                folders.forEach(function (folder, index) {
+                    sub.append('  <tr class="subfolder-column"><td class="subfolder-checkbox"> </td>' +
+                        '<td id="' + folder.path + '" class="subfolder-icon-name folder"><span class="icon folder-icon"></span><span class="name">' + folder.name + '</span></td>' +
+                        ' <td class="subfolder-date">' + moment(folder.lastModified).format('lll') + '</td>' +
+                        ' <td class="subfolder-updateby">-</td>' +
+                        ' <td class="subfolder-size">-</td></tr>  ')
+                });
+            }
+            extensionField.window.enableAutoResizing();
+
+
+
+        }
+        
+        //function for creating DOM for files retreived from Egnyte
+        function listFiles(files) {
+            console.log(files, "in listFiles")
+            if (files == undefined) {
+                console.log("no files");
+
+            }
+            else {
+                files.forEach(function (file, index) {
+
+                    sub.append('  <tr class="subfolder-column"><td class="subfolder-checkbox"> <input class="folder-checkbox isFile" name= "files" type="checkbox"/> <span class="lbl"></span></td>' +
+                        '<td id="' + file.group_id + '" class="subfolder-icon-name file"><span class="icon file-icon"></span><span class="name">' + file.name + '</span></td>' +
+                        ' <td class="subfolder-date">' + moment(file.last_modified).format('lll') + '</td>' +
+                        ' <td class="subfolder-updateby">' + file.uploaded_by + '</td>' +
+                        ' <td class="subfolder-size">' + formatFileSize(file.size) + '</td> </tr> ')
+                });
+
+            }
+
+
+            extensionField.window.enableAutoResizing();
+
+
+            extensionField.setReady();
+            domEvents();
+        }
+
+
+
+        function createDOM(data) {
+            listFolders(data.folders);
+            listFiles(data.files);
+            parent.show()
+        }
+        
+        //eventlistner function
+        function domEvents() {
+
+            //extensionField.window.enableAutoResizing();
+            
+            
+            //eventlistner function for files
+            $('.file').unbind('click').bind('click', function () {
+                $('.insertbtn').removeAttr('disabled');
+                console.log($(this).siblings(".subfolder-checkbox").find(".isFile"))
+                $(this).siblings(".subfolder-checkbox").find(".isFile").attr("checked", "true")
+                $(this).addClass("checked");
+            });
+
+            $('input[type="checkbox"]').click(function () {
+                if ($(this).is(':checked')) {
+                    $('.insertbtn').removeAttr('disabled');
+                    console.log($(this).parent().siblings('.file'))
+                    $(this).parent().siblings('.file').addClass("checked");
+                }
+                else {
+                    $(this).parent().siblings('.file').removeClass("checked");
+                }
+            });
+            
+            //eventlistner function for insert button
+            $('.insertbtn').click(function () {
+                console.log("button clicked")
+                ids = []
+                let file, id
+
+
+                $('input:checkbox[name=files]:checked').each(function () {
+                    console.log($(this), "cur")
+                    file = $(this).parent().siblings('.checked').find('.name').text();
+                    //files.push(file);
+                    id = $(this).parent().siblings('.checked').attr('id')
+                    ids.push(id)
+                    selectedFiles[id] = file
+
+                })
+
+                console.log(selectedFiles, "files")
+                console.log(ids, "ids")
+
+
+
+                $('.file-upload ul').empty()
+                Object.keys(selectedFiles).forEach(function (key) {
+
+                    $('.file-upload ul').append(' <li id= "' + key + '"><span class="fileimage"><img src="https://images.contentstack.io/v3/assets/bltd1343376dfba54d2/blt58137f649fac466d/5b4d7ac1c66ad68c0bb1227b/document_attachment.png" alt="image"></span><div class="filename">'
+                        + '<span class="name">' + selectedFiles[key] + '</span> <span class="size"></span></div><div class="file-action"><span class="close">x</span></div></li>')
+
+                })
+
+                extensionField.field.setData(ids).then(function () {
+                    if (ids.length == 0) {
+                        $('.file-upload').hide()
+                    }
+                    else {
+                        $('.file-upload').show()
+                    }
+                    parent.hide();
+                    $('.breadcrum').empty();
+                    $('.breadcrum').append('<li id="/Shared/' + initialList.name + '"><span>' + initialList.name + '</span></li>');
+                    $('.breadcrum').hide();
+                    $('.form').hide()
+
+
+                }).catch(function (error) {
+                    console.log('error in setting data', error)
+                })
+
+
+            })
+
+
+            // on click function choose file button
+            $('#choose_video').unbind('click').bind('click', function (e) {
+                //$('.choose_video').click(function (e) {
+                if (ids.length == 0) {
+                    $('.file-upload').hide()
+                }
+                else {
+                    $('.file-upload').show()
+                }
+                e.stopImmediatePropagation();
+                sub.empty();
+                $('.form').show()
+                $('.breadcrum').show();
+                parent.show();
+                return createDOM(initialList)
+            });
+
+            //click event function for click on folder
+            $('.folder').unbind('click').bind('click', function () {
+                //$('.folder div').click(function (e) {
+                let request = new Request();
+                var id = $(this).attr('id');
+                var value = $(this).html();
+                console.log(id, "id")
+                parent.hide()
+                $('.form').hide()
+                $('.load-more').hide()
+                sub.empty()
+                offset = 0;
+                request.loadData(id, offset).then((response) => {
+                    loadMore(response, id);
+                    parent.show();
+                    $('.form').show()
+                })
+                $('.breadcrum li').addClass("active");
+                $('.breadcrum').append('<li id="' + id + '"><span>' + value + '</span>')
+            })
+ 
+            //eventlistner function for breadcrum
+            $('.breadcrum li').unbind('click').bind('click', function () {
+                //$('.breadcrum li').click(function (){
+                let classs = $(this).attr("class")
+                msg.hide()
+                if (classs == "active") {
+                    $(this).nextAll().remove();
+                    $(this).removeClass("active")
+                    var id = $(this).attr('id');
+                    console.log(id, "id")
+                    sub.empty()
+                    offset = 0
+                    parent.hide()
+                    request.loadData(id, offset).then((response) => {
+                        loadMore(response, id);
+                        sub.show();
+                        parent.show();
+                    })
+
+                }
+                else {
+                    console.log("cant click")
+                }
+
+
+
+            })
+
+
+
+
+        }
+
+        // function for sending XHR request and getting data
+        function getData(data) {
+
+            return new Promise(function (resolve, reject) {
+                var req = new XMLHttpRequest();
+                req.open(data.method, data.url);
+                if ($('.load-more').hasClass("load-spinner")) {
+                    loader.hide()
+                }
+                else {
+                    loader.show();
+                }
+                for (var key in data.headers) {
+                    if (data.headers.hasOwnProperty(key)) {
+                        req.setRequestHeader(key, data.headers[key]);
+                    }
+                }
+
+                req.onload = function (e) {
+                    if (req.status == 200) {
+                        loader.hide();
+                        $('.load-more').removeClass("load-spinner")
+                        var data = JSON.parse(req.response);
+                        resolve(data);
+                    }
+                    else {
+                        reject(Error(req.statusText));
+                    }
+
+                };
+
+                req.onerror = function () {
+                    reject(Error("Network Error"));
+                };
+
+                if (data.data) {
+                    req.send(data.data);
+                } else {
+                    req.send();
+                }
+
+            });
+        }
+
+        //class request
+        class Request {
+
+            //loading data from egnyte
+            loadData(name, offset) {
+
+                var url = "https://apidemo.egnyte.com/pubapi/v1/fs" + name + "?count=5&offset=" + offset + "&access_token=" + extensionField.config.access_token;
+
+                return new Promise((resolve, reject) => {
+                    getData({ url: url, method: 'GET' }).then(function (data) {
+                        console.log("data egnyte", data);
+                        resolve(data)
+                    }, function (error) {
+                        console.error("Failed!", error);
+                    });
+                });
+
+            }
+
+            //search function
+            search(keyword, path) {
+                var url = "https://apidemo.egnyte.com/pubapi/v1/search?query=" + keyword + "&folder=" + path + "&access_token=" + extensionField.config.access_token;
+
+                return new Promise((resolve, reject) => {
+                    getData({ url: url, method: 'GET' }).then(function (data) {
+                        console.log("serach data ", data);
+                        resolve(data)
+                    }, function (error) {
+                        console.error("Failed!", error);
+                    });
+                });
+
+            }
+
+
+        }
+    </script>
+</body>
+
+</html>

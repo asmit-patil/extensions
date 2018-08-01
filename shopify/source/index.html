@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>External API UI Extension Sample</title>
+  <link href="./style.css" rel="stylesheet" type="text/css" media="all">
+  <link href="https://dev-assets.contentstack.io/v3/assets/blte59c2cc5bb273342/blta4ee08b401f5894a/5b3474a22f6329e911873859/ui-extension-sdk.css" rel="stylesheet" type="text/css" media="all">
+  <script src="https://dev-assets.contentstack.io/v3/assets/blte59c2cc5bb273342/blt05c43d88b9424dc7/5b3474a1b42236d71100436e/bundle.js"></script>
+  <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/bltc8e1a7c2b251bb36/5b210d634b75c4de05141d6e/jquery-1.11.1.js"></script>
+  <script src="https://sdks.shopifycdn.com/js-buy-sdk/v1/latest/index.umd.min.js"></script>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="discription_box">
+        <ul>
+            <h3>No Product Selected</h3>
+        </ul>
+        <a  class="btn cs-btn-success choose_video">Choose Product</a>
+      </div>
+      <!-- list section start  here -->
+      <div class="list_section">
+        <form action="">
+          <input type="search" class="cs-text-box w-100 searchInpput" placeholder="Search ..." />
+        </form>
+        <ul id="products">
+        </ul>
+      </div>
+      <!-- list section start  here -->
+    </div>
+  </div>
+</body>
+  <script src="./shopify.js"></script>
+</html>

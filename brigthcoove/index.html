@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>External API UI Extension Sample</title>
+    <link href="https://assets.contentstack.io/v3/assets/bltd1343376dfba54d2/bltd87d25214ececdcb/5b4762caf80cc8770b85241a/style.css" rel="stylesheet" type="text/css" media="all">
+
+    <script src="https://dev-assets.contentstack.io/v3/assets/blt438e02fa0cdfab26/blt18462c3211319d79/5b36269678b22b820491687b/bundle.js"></script>
+
+    <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/bltc8e1a7c2b251bb36/5b210d634b75c4de05141d6e/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/blt77885df3a8e892fc/5b210d82a00a67ed26443656/script.js"></script>
+    <style>
+    .msg{display:none;padding:20px}
+    .loader{display:none;}
+    </style>
+</head>
+
+
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="discription_box">
+                <ul>
+                    <li>
+                        <!--<span>No Video Selected</span>-->
+                    </li>
+                </ul>
+                <a href="#" class="choose_video">Choose Video</a>
+            </div>
+            
+            <!-- list section start  here -->
+            <div class="list_section">
+               
+                <form action="">
+                    <input type="search" class="searchInpput" placeholder="Search ...">
+                    
+                </form>
+                 <div class="loader">
+                        <img id="loader-img" alt="loader" src="https://clinicalpulse.com/img/loading.gif" width="100" height="100" align="center">
+                    </div>
+                
+                <ul id="products">
+                </ul>
+                <div class="msg">No Videos Found</div>
+            </div>
+            <!-- list section ends  here -->
+        </div>
+    </div>
+
+</body>
+
+
+
+
+
+<script>
+"use strict";var _createClass=function(){function i(e,n){for(var t=0;t<n.length;t++){var i=n[t];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(e,n,t){return n&&i(e.prototype,n),t&&i(e,t),e}}();function _classCallCheck(e,n){if(!(e instanceof n))throw new TypeError("Cannot call a class as a function")}var extensionField=void 0,loader=void 0,unorderedList=void 0,msg=void 0;function render(e){unorderedList.empty(),msg.hide(),e.forEach(function(e,n){"ACTIVE"===e.state&&unorderedList.append('<li id="blt'+e.id+'"><section><img src="'+e.images.thumbnail.src+'" alt="image-6"></section> <span class="title">'+e.name+"</span><p>"+e.description+"</p></li>")});var n=extensionField&&extensionField.field&&extensionField.field.getData()?extensionField.field.getData():null;if(n){var t=document.getElementById(n),i=$(t)[0].outerHTML;$(".discription_box ul").html(i),$(".discription_box ul li a").click(function(e){e.preventDefault()})}$(".choose_video").click(function(e){$(".list_section").show()}),extensionField.setReady(),domChangeListner()}function domChangeListner(){console.log("in domChangeListner"),extensionField.window.enableAutoResizing(),$(".list_section ul li section").click(function(e){e.preventDefault(),$(".list_section ul li").removeClass("selected"),$(this).parent().addClass("selected")}),$(".list_section ul li").click(function(){var e=$(this)[0].outerHTML;extensionField.field.setData($(this).attr("id")).then(function(){$(".discription_box ul").html(e),$(".list_section").hide()}).catch(function(e){console.log("error in setting data",e)})})}function getData(n){return console.log(n,"data parameter"),new Promise(function(t,i){extensionField.window.enableAutoResizing();var o=new XMLHttpRequest;for(var e in o.open(n.method,n.url),loader.show(),n.headers)n.headers.hasOwnProperty(e)&&o.setRequestHeader(e,n.headers[e]);o.onload=function(e){if(200==o.status){loader.hide();var n=JSON.parse(o.response);t(n)}else i(Error(o.statusText))},o.onerror=function(){i(Error("Network Error"))},n.data?o.send(n.data):o.send()})}$(document).ready(function(){msg=$(".msg"),loader=$(".loader"),unorderedList=$(".list_section ul"),ContentstackUIExtension.init().then(function(e){extensionField=e,console.log(extensionField.config,"apconfig");var t=new Request(e.config),i=void 0;t.getBrightcoveVideos().then(function(e){render(i=e)}),$(".searchInpput").on("keypress",function(e){var n=$(this).val().toLowerCase();if(13==e.keyCode){if(console.log("enter"),e.preventDefault(),!n)return render(i);t.search(n).then(function(e){if(0===e.length)return loader.hide(),unorderedList.empty(),void msg.show();render(e)})}}),$(".searchInpput").on("keyup",function(e){var n=$(this).val().toLowerCase();if(!n)return msg.hide(),render(i);$(".list_section ul li").filter(function(){$(this).toggle(-1<$(this).text().toLowerCase().indexOf(n))})}),extensionField.window.enableAutoResizing()})});var Request=function(){function e(){_classCallCheck(this,e)}return _createClass(e,[{key:"search",value:function(i){var e={"Content-Type":"application/x-www-form-urlencoded"},o="client_id="+extensionField.config.client_id+"&client_secret="+extensionField.config.client_secret+"&grant_type=client_credentials";console.log(o,"++++++++++++++++++++++++++++++++");var r=extensionField.config.oauthUrl;return new Promise(function(t,n){getData({url:r,headers:e,method:"POST",data:o}).then(function(e){return e}).then(function(e){var n={Authorization:"Bearer "+e.access_token};getData({url:extensionField.config.searchUrl+i,headers:n,method:"GET"}).then(function(e){console.log(e,"search res"),t(e)}).catch(function(e){loader.hide(),msg.show()})}).catch(function(e){n(e)})})}},{key:"getBrightcoveVideos",value:function(){var n={"Content-Type":"application/x-www-form-urlencoded"},i="client_id="+extensionField.config.client_id+"&client_secret="+extensionField.config.client_secret+"&grant_type=client_credentials",o=extensionField.config.oauthUrl;return new Promise(function(t,e){getData({url:o,headers:n,method:"POST",data:i}).then(function(e){return console.log("ap-data",e),e}).then(function(e){console.log("result ap data",e);var n={Authorization:"Bearer "+e.access_token};getData({url:extensionField.config.brightcoveUrl,headers:n,method:"GET"}).then(function(e){console.log("data ap getVideos",e),t(e)}).catch(function(e){throw e})})})}}]),e}();
+</script>
+
+
+
+</html>

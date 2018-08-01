@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>External API UI Extension Sample</title>
+    <link href="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/bltb239f18bb2a4aaeb/5b2135b34b75c4de05141e4c/style.css"
+        rel="stylesheet" type="text/css" media="all">
+
+    <script src="https://dev-assets.contentstack.io/v3/assets/blt438e02fa0cdfab26/blt18462c3211319d79/5b36269678b22b820491687b/bundle.js"></script>
+
+    <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/bltc8e1a7c2b251bb36/5b210d634b75c4de05141d6e/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/blt77885df3a8e892fc/5b210d82a00a67ed26443656/script.js"></script>
+    <style>
+        .msg {
+            display: none;
+            padding: 20px
+        }
+
+        .loader {
+            display: none;
+            position: absolute;
+            margin-top: 50%;
+            margin-left: 50%;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="discription_box">
+                <ul>
+                    <li>
+                        <span>No Video Selected</span>
+                    </li>
+                </ul>
+                <a href='#' class="choose_video">Choose Video</a>
+            </div>
+            <div class="loader">
+                <img id="loader-img" alt="" src="https://clinicalpulse.com/img/loading.gif"
+                    width="100" height="100" align="center" />
+            </div>
+            <!-- list section start  here -->
+            <div class="list_section">
+                <form action="">
+                    <input type="search" class="searchInpput" placeholder="Search ..." />
+                </form>
+                <ul id="products">
+                </ul>
+                <div class="msg">No Videos Found</div>
+            </div>
+            <!-- list section ends  here -->
+        </div>
+    </div>
+
+    <script type="text/javascript">
+
+
+
+
+
+        let extensionField;
+        let loader;
+        let unorderedList;
+        let msg;
+        
+        $(document).ready(function () {
+            msg = $('.msg')
+            loader = $('.loader')
+            unorderedList = $('.list_section ul');
+            // Step:1 Intializing extension - In this step we try to connect to host window using postMessage API and get intial data.
+            ContentstackUIExtension.init().then(function (extension) {
+                extensionField = extension;
+
+                console.log(extensionField.config)
+                let request = new Request(extension.config);
+                let initialList; // store initial data to save extra rest call when search field is empty
+
+                request.ooyalaVideos().then((response) => {
+                    console.log(response, "res-------")
+                    initialList = response;
+
+                    // Step 2:  Render - Render the data fetched from external service
+                    render(response)
+                });
+
+                extensionField.window.enableAutoResizing();
+
+            })
+
+        });
+        
+        // render function for creating DOM structure
+        function render(videos) {
+            console.log(videos, "-----------------------------")
+            videos.forEach(function (video, index) {
+
+                $('.list_section ul').append('<li style="height: 310px;" id="blt' + video.embed_code + '">' +
+                    '<a href="#"><img src="' + video.preview_image_url + '" alt="image-6"></a>' +
+                    ' <span class="title">' + video.name + '</span>' +
+                    '<p>' + video.description + '</p></li>');
+
+
+            });
+            var initialValue = (extensionField && extensionField.field && extensionField.field.getData()) ? extensionField.field.getData() : null;
+        
+            if (initialValue) {
+                var currentElement = document.getElementById(initialValue);
+                var box = $(currentElement)[0].outerHTML;
+                $('.discription_box ul').html(box);
+                $('.discription_box ul li a').click(function (e) {
+                    e.preventDefault();
+                });
+
+            }
+
+            extensionField.window.enableAutoResizing();
+            // on keypress event handler
+            $(".searchInpput").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                msg.hide()
+                $(".list_section ul li").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+            // on click function choose video button
+            $('.choose_video').click(function (e) {
+                $('.list_section').show();
+            });
+            extensionField.setReady();
+            domEvents();
+        }
+
+        //eventlistner function
+        function domEvents() {
+            extensionField.window.enableAutoResizing();
+
+            $('.list_section ul li a').click(function (e) {
+                e.preventDefault();
+                $('.list_section ul li').removeClass('selected');
+                $(this).parent().addClass('selected');
+            });
+
+            $('.list_section ul li').click(function () {
+                var box = $(this)[0].outerHTML;
+                extensionField.field.setData($(this).attr('id')).then(function () {
+                    $('.discription_box ul').html(box);
+                    $('.list_section').hide();
+                }).catch(function (error) {
+                    console.log('error in setting data', error)
+                })
+            });
+        }
+
+        // function for sending XHR request and getting data
+        function getData(data) {
+            console.log(data, "data parameter")
+            return new Promise(function (resolve, reject) {
+                extensionField.window.enableAutoResizing();
+                var req = new XMLHttpRequest();
+                req.open(data.method, data.url);
+                loader.show();
+
+                for (var key in data.headers) {
+                    if (data.headers.hasOwnProperty(key)) {
+                        req.setRequestHeader(key, data.headers[key]);
+                    }
+                }
+
+                req.onload = function (e) {
+
+                    if (req.status == 200) {
+
+                        loader.hide();
+                        var data = JSON.parse(req.response);
+                        resolve(data);
+                    }
+                    else {
+                        reject(Error(req.statusText));
+                    }
+                };
+
+                req.onerror = function () {
+                    reject(Error("Network Error"));
+                };
+
+                if (data.data) {
+                    req.send(data.data);
+                } else {
+                    req.send();
+                }
+
+            });
+        }
+
+
+        // class request 
+        class Request {
+
+            //function for retrieving videos from ooyala
+            ooyalaVideos() {
+
+             var headers = {
+		        "Content-Type": "application/json",
+		        "api_key" : extensionField.config.api_key,
+		        "secret" : extensionField.config.secret
+              }
+            var url = extensionField.config.url
+
+                return new Promise((resolve, reject) => {
+
+                    getData({ url: url, headers: headers, method: 'GET' })
+                        .then(function (data) {
+                            console.log("data ooyala", data.items)
+
+                            resolve(data.items);
+                        }, function (error) {
+                            console.error("Failed!", error)
+                        })
+                })
+
+            }
+        }
+
+       
+
+    </script>
+</body>
+
+</html>
+
+
+<!-- configparameter
+{
+	"api_key": "U4N20yOkty3YbyhH76sl_2FHQSs0.fmf-s",
+	"secret": "5OKArq2h09MNqNgzYXgfNCyzUhXND3GKw1biizQe",
+	"url": "https://ooyala-proxy-api.herokuapp.com/ooyala/v2/assets"
+} -->

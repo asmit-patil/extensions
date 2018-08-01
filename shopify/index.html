@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>External API UI Extension Sample</title>
+  <style media="all">
+a,abbr,acronym,address,applet,article,aside,audio,b,big,blockquote,body,canvas,caption,center,cite,code,dd,del,details,dfn,div,dl,dt,em,embed,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,html,i,iframe,img,ins,kbd,label,legend,li,mark,menu,nav,object,ol,output,p,pre,q,ruby,s,samp,section,small,span,strike,strong,sub,summary,sup,table,tbody,td,tfoot,th,thead,time,tr,tt,u,ul,var,video{margin:0;padding:0;border:0;font-size:100%;font-weight:500;font-family:'Whitney SSm A','Whitney SSm B',Arial;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:after,blockquote:before,q:after,q:before{content:'';content:none}table{border-collapse:collapse;border-spacing:0}.wrapper{margin:0;padding:0;width:100%}.wrapper .container{width:1200px;margin:0 auto;overflow:hidden}.discription_box ul,.wrapper .container .discription_box{width:100%;float:left}.discription_box ul{display:block;padding-bottom:25px}.discription_box ul li{width:30.33%;float:left;display:block;margin-right:3%;border:1px solid #ccc}.discription_box ul li img{width:100%;height:auto;position:relative}.discription_box ul li span.title{font-size:16px;line-height:20px;padding:10px 10px 5px;display:block}.discription_box ul li p{font-size:12px;line-height:14px;padding:0 10px 20px;margin-bottom:0}.discription_box ul li a{position:relative;display:block}.discription_box .choose_video{cursor:pointer}.wrapper .container .list_section{width:100%;display:none;float:left}.wrapper .container .list_section form{padding-top:20px}.list_section ul{width:100%;float:left;display:block;padding-top:35px;padding-bottom:25px}.list_section ul li{width:28.33%;float:left;display:block;margin-right:4.2%;border:1px solid transparent;margin-bottom:19px;cursor:pointer}.list_section ul li:nth-child(3n+3){margin-right:0}.list_section ul li a{position:relative;display:block}.list_section ul li img{width:100%;height:auto;position:relative}.list_section ul li span.title{font-size:16px;line-height:20px;padding:10px 10px 5px;display:block}.list_section ul li p{font-size:12px;line-height:14px;padding:0 10px 20px;margin-bottom:0}.list_section ul li.selected{position:relative;border:1px solid #4895e6}.list_section ul li.selected:after{width:8px;position:absolute;content:'';right:15px;top:7px;height:8px;border-radius:50%;border:7px solid #4895e6;background:#fff}@media (max-width:1200px){.wrapper .container{width:100%}.list_section ul li{margin-right:4%}}@media (max-width:768px){.list_section ul li:nth-child(3n+3){margin-right:4%}}@media (max-width:640px){.list_section ul{float:none}.list_section ul li{float:none;display:block;margin:0 auto 20px}.list_section ul li:nth-child(3n+3){margin:0 auto 20px}}
+</style>
+  <link href="https://dev-assets.contentstack.io/v3/assets/blte59c2cc5bb273342/blta4ee08b401f5894a/5b3474a22f6329e911873859/ui-extension-sdk.css" rel="stylesheet" type="text/css" media="all">
+  <script src="https://dev-assets.contentstack.io/v3/assets/blte59c2cc5bb273342/blt05c43d88b9424dc7/5b3474a1b42236d71100436e/bundle.js"></script>
+  <script type="text/javascript" src="https://assets.contentstack.io/v3/assets/blt30b41f7b9a5d7467/bltc8e1a7c2b251bb36/5b210d634b75c4de05141d6e/jquery-1.11.1.js"></script>
+  <script src="https://sdks.shopifycdn.com/js-buy-sdk/v1/latest/index.umd.min.js"></script>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="discription_box">
+        <ul>
+            <h3>No Product Selected</h3>
+        </ul>
+        <a class="btn cs-btn-success choose_video">Choose Product</a>
+      </div>
+      <!-- list section start  here -->
+      <div class="list_section">
+        <form action="">
+          <input type="search" class="cs-text-box w-100 searchInpput" placeholder="Search ...">
+        </form>
+        <ul id="products">
+        </ul>
+      </div>
+      <!-- list section start  here -->
+    </div>
+  </div>
+</body>
+  <script>
+"use strict";var _createClass=function(){function i(e,n){for(var t=0;t<n.length;t++){var i=n[t];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(e,n,t){return n&&i(e.prototype,n),t&&i(e,t),e}}();function _classCallCheck(e,n){if(!(e instanceof n))throw new TypeError("Cannot call a class as a function")}var extensionField=void 0,shopifyClient=void 0,unorderedList=void 0;$(document).ready(function(){unorderedList=$(".list_section ul"),ContentstackUIExtension.init().then(function(e){var t=new Request((extensionField=e).config),i=void 0;t.get().then(function(e){render(i=e)}),$(".searchInpput").on("keypress",function(e){var n=$(this).val().toLowerCase();if(13===e.keyCode){if(e.preventDefault(),!n)return render(i);t.search(n).then(function(e){if(0===e.length)return unorderedList.empty(),unorderedList.append('<li><span class="title">No Products Found</span></li>');render(e)})}}),$(".searchInpput").on("keyup",function(e){if(!$(this).val().toLowerCase())return render(i)}),extensionField.window.enableAutoResizing()})});var Request=function(){function i(e){var n=e.domain,t=e.storefrontAccessToken;_classCallCheck(this,i),this.shopifyClient=ShopifyBuy.buildClient({domain:n,storefrontAccessToken:t})}return _createClass(i,[{key:"get",value:function(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:6,i=this;return new Promise(function(n,t){i.shopifyClient.product.fetchAll(e).then(function(e){n(e)}).catch(function(e){t(err)})})}},{key:"search",value:function(e){var i=1<arguments.length&&void 0!==arguments[1]?arguments[1]:6,o=this;return new Promise(function(n,t){o.shopifyClient.product.fetchQuery({first:i,query:""+e}).then(function(e){n(e)}).catch(function(e){t(err)})})}}]),i}();function render(e){unorderedList.empty(),e.forEach(function(e,n){unorderedList.append('<li style="height:330px;" id="blt'+e.id+'"><a><img src="'+e.images[0].src+'" alt="image-6"></a> <span class="title">'+e.title+'</span> <span class="title">Price: '+e.variants[0].price+" $</span><p>"+e.description+"</p></li>")});var n=extensionField&&extensionField.field&&extensionField.field.getData()?extensionField.field.getData():null;if(n){var t=document.getElementById(n),i=$(t)[0].outerHTML;$(".discription_box ul").html(i)}$(".choose_video").click(function(e){$(".list_section").show()}),domChangeListner()}function domChangeListner(){var n=$(".list_section ul li");$(".list_section ul li a").click(function(e){n.removeClass("selected"),$(this).parent().addClass("selected")}),n.click(function(){var e=$(this)[0].outerHTML;extensionField.field.setData($(this).attr("id")).then(function(){$(".discription_box ul").html(e),$(".list_section").hide()}).catch(function(e){console.log("error in setting data",e)})})}
+</script>
+</html>
